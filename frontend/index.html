@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeGuard AI — NBA Trade & Salary Cap Compliance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B1120;
+    --panel: #131B2E;
+    --panel-2: #1A2438;
+    --line: #26314A;
+    --amber: #E8A33D;
+    --green: #3FBF7F;
+    --red: #E24A4A;
+    --text: #EDEFF3;
+    --muted: #8B93A7;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  h1, h2, h3, .display {
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  a { color: var(--amber); }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px;
+    background: rgba(11,17,32,0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 0.04em; }
+  .logo span { color: var(--amber); }
+  nav .links { display: flex; gap: 28px; font-size: 14px; color: var(--muted); }
+  nav .links a { color: var(--muted); text-decoration: none; }
+  nav .links a:hover { color: var(--text); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    max-width: 1100px; margin: 0 auto;
+    padding: 72px 40px 40px;
+    text-align: center;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; letter-spacing: 0.12em;
+    color: var(--amber);
+    border: 1px solid rgba(232,163,61,0.35);
+    padding: 5px 12px; border-radius: 999px;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: clamp(38px, 6vw, 68px);
+    font-weight: 700;
+    line-height: 1.02;
+  }
+  .hero h1 .accent { color: var(--amber); }
+  .hero p.sub {
+    max-width: 620px; margin: 22px auto 0;
+    color: var(--muted); font-size: 17px;
+  }
+
+  /* ---------- Verdict / ruling card (SIGNATURE ELEMENT) ---------- */
+  .console {
+    max-width: 780px; margin: 48px auto 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    text-align: left;
+  }
+  .console-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .field-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .field { flex: 1; min-width: 140px; }
+  .field label {
+    display: block; font-size: 12px; color: var(--muted);
+    margin-bottom: 6px; font-family: 'JetBrains Mono', monospace;
+  }
+  select, input {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  select:focus, input:focus, button:focus-visible {
+    outline: 2px solid var(--amber); outline-offset: 2px;
+  }
+  .run-btn {
+    margin-top: 8px;
+    width: 100%;
+    background: var(--amber);
+    color: #1a1206;
+    border: none;
+    padding: 13px;
+    border-radius: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+  }
+  .run-btn:hover { filter: brightness(1.08); }
+  .run-btn:disabled { opacity: 0.5; cursor: wait; }
+
+  .ruling {
+    margin-top: 20px;
+    border-top: 1px dashed var(--line);
+    padding-top: 20px;
+    display: none;
+  }
+  .ruling.show { display: block; animation: stamp 0.28s ease-out; }
+  @keyframes stamp {
+    0% { opacity: 0; transform: scale(0.94) rotate(-1deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  .verdict-stamp {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700; font-size: 22px;
+    letter-spacing: 0.04em;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 2px solid currentColor;
+  }
+  .verdict-stamp.legal { color: var(--green); }
+  .verdict-stamp.flagged { color: var(--red); }
+  .ruling .reason { margin-top: 14px; color: var(--text); font-size: 14.5px; }
+  .ticker {
+    margin-top: 14px;
+    display: flex; gap: 22px; flex-wrap: wrap;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  }
+  .ticker div span.k { color: var(--muted); display: block; font-size: 11px; }
+  .citation {
+    margin-top: 14px; font-size: 12px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .citation .tag {
+    display: inline-block; background: var(--panel-2); border: 1px solid var(--line);
+    padding: 3px 9px; border-radius: 6px; color: var(--amber);
+  }
+  .error-msg { color: var(--red); font-size: 13.5px; margin-top: 14px; }
+
+  /* ---------- Pipeline section ---------- */
+  .pipeline {
+    max-width: 1000px; margin: 100px auto 0; padding: 0 40px;
+  }
+  .section-head { text-align: center; margin-bottom: 46px; }
+  .section-head .eyebrow { margin-bottom: 14px; }
+  .section-head h2 { font-size: clamp(26px, 4vw, 38px); }
+  .roster {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .jersey {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    position: relative;
+  }
+  .jersey .num {
+    font-family: 'Oswald', sans-serif; font-weight: 700;
+    font-size: 34px; color: var(--line);
+    position: absolute; top: 14px; right: 18px;
+  }
+  .jersey h3 { font-size: 16px; margin-bottom: 8px; color: var(--amber); }
+  .jersey p { font-size: 13.5px; color: var(--muted); margin: 0; padding-right: 30px; }
+
+  /* ---------- Ask section ---------- */
+  .ask-section { max-width: 780px; margin: 100px auto 0; padding: 0 40px; }
+  .ask-box {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 26px;
+  }
+  textarea {
+    width: 100%; min-height: 84px;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 12px; font-family: 'Inter', sans-serif;
+    font-size: 14.5px; resize: vertical;
+  }
+  .ask-answer {
+    margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--line);
+    font-size: 14.5px; line-height: 1.65; display: none; white-space: pre-wrap;
+  }
+  .ask-answer.show { display: block; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  footer {
+    text-align: center; padding: 70px 40px 50px;
+    color: var(--muted); font-size: 13px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ruling.show { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">TRADE<span>GUARD</span> AI</div>
+  <div class="links">
+    <a href="#console">Trade Checker</a>
+    <a href="#pipeline">How It Works</a>
+    <a href="#ask">Ask the Agent</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">NBA SALARY CAP &amp; TRADE COMPLIANCE ENGINE</div>
+  <h1>Is the trade <span class="accent">legal?</span><br>Ask the rulebook.</h1>
+  <p class="sub">Real CBA salary-matching rules, applied to real 2025-26 team payrolls — checked by a rules engine, explained by an AI agent that cites the exact clause it used.</p>
+
+  <div class="console" id="console">
+    <div class="console-label">// TRADE INPUT</div>
+    <div class="field-row">
+      <div class="field">
+        <label for="team">TEAM SENDING PLAYERS OUT</label>
+        <select id="team">
+          <option value="CLE">Cleveland Cavaliers (2nd apron)</option>
+          <option value="GSW">Golden State Warriors (1st apron)</option>
+          <option value="LAL">LA Lakers (over tax)</option>
+          <option value="BOS" selected>Boston Celtics (over cap)</option>
+          <option value="DAL">Dallas Mavericks (over cap)</option>
+          <option value="PHX">Phoenix Suns (over cap)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="out">SALARY SENT OUT ($)</label>
+        <input id="out" type="number" value="10000000" step="100000">
+      </div>
+      <div class="field">
+        <label for="in">SALARY RECEIVED ($)</label>
+        <input id="in" type="number" value="11500000" step="100000">
+      </div>
+    </div>
+    <button class="run-btn" id="runBtn" onclick="checkTrade()">Rule On This Trade</button>
+
+    <div class="ruling" id="ruling">
+      <div id="verdictStamp"></div>
+      <div class="reason" id="reasonText"></div>
+      <div class="ticker" id="ticker"></div>
+      <div class="citation" id="citation"></div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</section>
+
+<section class="pipeline" id="pipeline">
+  <div class="section-head">
+    <div class="eyebrow">THE ROSTER</div>
+    <h2>Six tools. One ruling.</h2>
+  </div>
+  <div class="roster">
+    <div class="jersey"><div class="num">01</div><h3>Cap Status Lookup</h3><p>Pulls a team's real payroll and apron tier straight from the database.</p></div>
+    <div class="jersey"><div class="num">02</div><h3>Player Salary Lookup</h3><p>Resolves a player's name to their real current cap hit.</p></div>
+    <div class="jersey"><div class="num">03</div><h3>Salary Match Engine</h3><p>Applies the 125% / 110% / aggregation-ban rules deterministically.</p></div>
+    <div class="jersey"><div class="num">04</div><h3>Rule Retrieval (RAG)</h3><p>Searches the real CBA text and returns the exact clause that applies.</p></div>
+    <div class="jersey"><div class="num">05</div><h3>Risk Classifier</h3><p>A trained model scores how likely a trade shape is to get flagged.</p></div>
+    <div class="jersey"><div class="num">06</div><h3>Target Recommender</h3><p>Ranks legal, affordable trade targets that fit a stated roster need.</p></div>
+  </div>
+</section>
+
+<section class="ask-section" id="ask">
+  <div class="section-head">
+    <div class="eyebrow">FREE-FORM</div>
+    <h2>Ask the agent anything</h2>
+  </div>
+  <div class="ask-box">
+    <textarea id="askInput" placeholder="e.g. Can Cleveland combine two contracts in a trade?">Can Cleveland combine two contracts in a trade?</textarea>
+    <button class="run-btn" id="askBtn" onclick="askAgent()" style="margin-top:14px;">Ask</button>
+    <div class="hint">Runs the real Gemini agent loop — it decides which tools to call. Requires the API server running locally with GEMINI_API_KEY set.</div>
+    <div class="ask-answer mono" id="askAnswer"></div>
+  </div>
+</section>
+
+<footer>
+  TradeGuard AI — an NBA salary cap compliance engine, built end to end from real data. · <a href="#console">Back to top</a>
+</footer>
+
+<script>
+  // Change this to your deployed backend URL once it's live, e.g.
+  // "https://tradeguard-api.onrender.com" — no trailing slash.
+  const API_BASE = "http://localhost:8000";
+
+  async function checkTrade() {
+    const btn = document.getElementById('runBtn');
+    const ruling = document.getElementById('ruling');
+    const errorMsg = document.getElementById('errorMsg');
+    ruling.classList.remove('show');
+    errorMsg.textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Checking...";
+
+    const team = document.getElementById('team').value;
+    const out = parseFloat(document.getElementById('out').value);
+    const inc = parseFloat(document.getElementById('in').value);
+
+    try {
+      const res = await fetch(`${API_BASE}/evaluate-trade`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          team_from: team,
+          outgoing_salaries: [out],
+          incoming_salaries: [inc],
+        }),
+      });
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const data = await res.json();
+
+      const stampEl = document.getElementById('verdictStamp');
+      stampEl.innerHTML = data.permitted
+        ? `<div class="verdict-stamp legal">✓ LEGAL</div>`
+        : `<div class="verdict-stamp flagged">✕ NOT PERMITTED</div>`;
+
+      document.getElementById('reasonText').textContent = data.reason;
+      document.getElementById('ticker').innerHTML = `
+        <div><span class="k">APRON STATUS</span>${data.team_from_apron_status}</div>
+        <div><span class="k">RULE APPLIED</span>${data.rule_applied}</div>
+      `;
+      document.getElementById('citation').innerHTML = `<span class="tag">SOURCE</span> ${data.citation}`;
+      ruling.classList.add('show');
+    } catch (err) {
+      errorMsg.textContent = `Couldn't reach the API — is it running at ${API_BASE}? (${err.message})`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Rule On This Trade";
+    }
+  }
+
+  async function askAgent() {
+    const btn = document.getElementById('askBtn');
+    const answerEl = document.getElementById('askAnswer');
+    const question = document.getElementById('askInput').value.trim();
+    if (!question) return;
+
+    answerEl.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = "Thinking...";
+
+    try {
+      const res = await fetch(`${API_BASE}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      if (!res.ok) throw new Error(`Server responded ${res.status}`);
+      const data = await res.json();
+      answerEl.textContent = data.answer;
+      answerEl.classList.add('show');
+    } catch (err) {
+      answerEl.textContent = `Couldn't reach the agent endpoint — check the API server is running with GEMINI_API_KEY set. (${err.message})`;
+      answerEl.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Ask";
+    }
+  }
+</script>
+
+</body>
+</html>
