@@ -21,6 +21,13 @@ Article VII, Sec. 5(a), second-apron teams cannot aggregate multiple
 outgoing contracts to match a larger incoming salary.
 ```
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Hero](docs/screenshots/hero.png) | ![Legal verdict](docs/screenshots/verdict-legal.png) |
+| ![Six tools](docs/screenshots/roster-tools.png) | ![Ask the agent](docs/screenshots/ask-agent.png) |
+
 ## Architecture
 
 ```
