@@ -1,4 +1,23 @@
-# TradeGuard AI — Build Log
+# TradeGuard AI
+
+**An agentic AI system for NBA salary cap & trade compliance** — real CBA rules engine, RAG over rule text, a trained risk classifier, and an LLM agent that decides which tools to call, all wired into a live API and web UI.
+
+🔗 **Live site:** https://tradeguard-ai-xi.vercel.app
+🔗 **Live API docs:** https://tradeguard-ai-ea0h.onrender.com/docs
+🔗 **Code:** https://github.com/HarshaVardhanRepudi/tradeguard-ai-
+
+> Note: the backend runs on a free tier that spins down after inactivity — the first request after idle time can take 20-30s to wake up. This is expected, not a bug.
+
+## What this proves
+- **Real data**, sourced from public Spotrac cap tables (not fabricated) for 6 NBA teams, spanning all three CBA rule tiers (standard, first apron, second apron)
+- **A deterministic rules engine** implementing the actual CBA salary-matching math, verified against real team payrolls
+- **RAG retrieval** over paraphrased CBA rule text, so every answer cites a real source
+- **A trained ML classifier** (RandomForest, evaluated with accuracy/precision/recall/F1/ROC-AUC) predicting trade compliance risk
+- **A recommendation engine** ranking real players by fit against a team's need, merged with legality checking
+- **A real LLM agent** (Google Gemini, tool-use API) that decides for itself which of 6 tools to call and in what order — not a hardcoded pipeline
+- **A production API** (FastAPI) and **deployed frontend**, both live on the public internet
+
+## Build Log
 
 ## What's working right now (Phase 1-3: Data, Rules Engine, RAG, ML)
 
